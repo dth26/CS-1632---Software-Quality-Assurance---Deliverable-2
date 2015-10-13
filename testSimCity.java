@@ -1,6 +1,5 @@
 import static org.junit.Assert.*;
-
-
+import java.util.Random;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +17,6 @@ import static org.mockito.Mockito.*;
 public class testSimCity {
 	@SuppressWarnings("unchecked")	
 	
-	stubMap methodStubsForMap = new stubMap();
 	
 	
 	// create a new street
@@ -43,10 +41,17 @@ public class testSimCity {
 	// check that the neighbors of the two different destinations are not the same
 	@Test
 	public void testDestinationNeighbors(){
-		ArrayList<Destination> neighbors1 = new ArrayList<Destination> ();
-		ArrayList<Destination> neighbors2 = new ArrayList<Destination> ();
-		Destination destination1 = new Destination("Mall");
-		Destination destination2 = new Destination("Mall");
+		Map map = mock(Map.class);
+		
+		
+		CitySimDriver citySim = Mockito.mock(CitySimDriver.class);
+		when(citySim.getRandomGenerator()).thenReturn(new Random(5));
+		Random rand = citySim.getRandomGenerator();
+	
+		doReturn(new Destination("home")).when(map).getRandomDestination(rand);
+
+		Destination destination1 = map.getRandomDestination(rand);
+		Destination destination2 = new Destination("home");
 		
 		for(int i=0; i<10; i++){
 			destination1.AddNeighbor(Mockito.mock(Destination.class), Mockito.mock(Street.class) );
@@ -60,13 +65,6 @@ public class testSimCity {
 	}
 	
 	
-	// ensure that creating new CitySim9000 does not result in error
-	@Test
-	public void testNewCitySim9000(){
-		int random = methodStubsForMap.getRandom(1);
-		CitySimDriver CitySim = new CitySimDriver(random);
-		assertNotNull(CitySim);
-	}
 	
 	// create two destinations 
 	// add different neighbor to each destinations via the same street
@@ -77,7 +75,9 @@ public class testSimCity {
 		Destination destination2 = Mockito.mock(Destination.class);
 		Destination neighbor1 = new Destination("mall");
 		Destination neighbor2 = new Destination("bookstore");
-		Street street = new Street("Fourth Ave");
+		
+		doReturn(new Street("Fourth Ave")).when(destination1).getStreet(destination1);
+		Street street = destination1.getStreet(destination1);
 		
 		destination1.AddNeighbor(neighbor1, street);
 		destination2.AddNeighbor(neighbor2, street);
@@ -102,11 +102,12 @@ public class testSimCity {
 	// check that getRandomDestination does not return a null destination
 	@Test
 	public void testGetRandomDestination(){
-		int random = methodStubsForMap.getRandom(10);
-		Map map = new Map(random);
+		Map map = new Map();
+		CitySimDriver CitySim = Mockito.mock(CitySimDriver.class);
+		when(CitySim.getRandomGenerator()).thenReturn(new Random(5));
 		map.addDestination("home");
 		map.addDestination("school");
-		Destination destination = map.getRandomDestination();
+		Destination destination = map.getRandomDestination(CitySim.getRandomGenerator());
 		assertNotNull(destination);
 	}
 	
@@ -116,15 +117,25 @@ public class testSimCity {
 	// check that getRandomNeighbor returns a neighbor that is not null
 	@Test
 	public void testGetRandomNeighbor(){
-		Destination destination = methodStubsForMap.getRandomDestination();
+		Map map = Mockito.mock(Map.class);
+		when(map.getRandomDestination(new Random(5))).thenReturn(new Destination("home"));
+		
+		
+		Destination destination = new Destination("home");
 		Destination neighbor1 = new Destination("mall");
 		Destination neighbor2 = new Destination("bookstore");
+		
 		Street street1 = Mockito.mock(Street.class);
 		Street street2 = Mockito.mock(Street.class);
+		
 		destination.AddNeighbor(neighbor1, street1);
 		destination.AddNeighbor(neighbor2, street2);
-		Map map = new Map(5);
-		Destination randomNeighbor = map.getRandomNeighbor(destination);
+		
+		CitySimDriver CitySim = Mockito.mock(CitySimDriver.class);
+		when(CitySim.getRandomGenerator()).thenReturn(new Random(5));
+		
+		Map m = new Map();
+		Destination randomNeighbor = m.getRandomNeighbor(destination, CitySim.getRandomGenerator());
 		assertNotNull(randomNeighbor);
 	}
 	
@@ -133,18 +144,23 @@ public class testSimCity {
 	// ensure that moveDriver sets the current location of driver to a new destination
 	@Test
 	public void testMoveDriver(){
-		Map map = new Map(5);
+		Map map = new Map();
 		Destination currDestination = new Destination("home");
 		Destination neighbor1 = new Destination("school");
 		Destination neighbor2 = new Destination("university");
+		
 		Street street1 = Mockito.mock(Street.class);
 		Street street2 = Mockito.mock(Street.class);
+		
 		currDestination.AddNeighbor(neighbor1, street1);
 		currDestination.AddNeighbor(neighbor2, street2);
 		
+		CitySimDriver CitySim = Mockito.mock(CitySimDriver.class);
+		when(CitySim.getRandomGenerator()).thenReturn(new Random(5));
+		
 		Driver driver = new Driver("Dan", currDestination);
-		Destination nextDestination = methodStubsForMap.getRandomNeighbor(currDestination);
-		map.moveDriver(driver);
+		
+		map.moveDriver(driver, CitySim.getRandomGenerator());
 		assertNotEquals(driver.location, currDestination);
 	}
 	
@@ -153,7 +169,7 @@ public class testSimCity {
 	// ensure new destination is not null
 	@Test
 	public void testAddingDestination(){
-		Map map = new Map(7);
+		Map map = new Map();
 		Destination newDestination = map.addDestination("home");
 		assertNotNull(newDestination);
 	}
@@ -164,7 +180,7 @@ public class testSimCity {
 	// check that new street is not null
 	@Test
 	public void testAddStreet(){
-		Map map = new Map(10);
+		Map map = new Map();
 		Street street = map.addStreet("fourth ave");
 		assertNotNull(street);
 	}
@@ -174,7 +190,7 @@ public class testSimCity {
 	// ensure that driver is not null
 	@Test
 	public void testAddDriver(){
-		Map map = new Map(1);
+		Map map = new Map();
 		Destination location = Mockito.mock(Destination.class);
 		Driver driver = map.addDriver("Dan", location);
 		assertNotNull(driver);
@@ -188,8 +204,8 @@ public class testSimCity {
 	public void testAddPath(){
 		Destination A = new Destination("A");
 		Destination B = new Destination("B");
-		int random = methodStubsForMap.getRandom(10);
-		Map map = new Map(random);
+
+		Map map = new Map();
 		Street street = new Street("Forbes Ave");
 		map.createPath(A, B, street);
 		Street streetCheck = A.getStreet(B);
@@ -201,9 +217,8 @@ public class testSimCity {
 	// check that only one seed can be entered as argument
 	@Test
 	public void testIsArgValid(){
-		CitySimDriver CitySim = new CitySimDriver(1);
 		String args[] = {"1","2"};
-		boolean isArgValid = CitySim.isArgValid(args);
+		boolean isArgValid = CitySimDriver.isArgValid(args);
 		assertFalse(isArgValid);
 		
 	}

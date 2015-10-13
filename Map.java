@@ -4,17 +4,16 @@ import java.util.Random;
 
 public class Map implements map_functions{
 
-	private ArrayList<Destination> destinations;
-	private Random randomGenerator;
+	ArrayList<Destination> destinations;
+
 	
-	public Map(int seed){
+	public Map(){
 		destinations = new ArrayList<Destination>();
-		randomGenerator = new Random(seed);
 	}
 	
-	public int getRandom(int max){
-		return randomGenerator.nextInt(max);
-	}
+//	public int getRandom(int max){
+//		return randomGenerator.nextInt(max);
+//	}
 
 
 	@Override
@@ -45,18 +44,18 @@ public class Map implements map_functions{
 
 
 	@Override
-	public Destination getRandomNeighbor(Destination dest) {
+	public Destination getRandomNeighbor(Destination dest, Random rand) {
 		int neighborSize = dest.neighbors.size();
-		int random = getRandom(neighborSize);
+		int random = rand.nextInt(neighborSize);
 		return dest.neighbors.get(random);
 	}
 
 
 
 	@Override
-	public Destination moveDriver(Driver driver) {
+	public Destination moveDriver(Driver driver, Random rand) {
 		Destination currDestination = driver.location;
-		Destination newDestination = getRandomNeighbor(currDestination);
+		Destination newDestination = getRandomNeighbor(currDestination, rand);
 		driver.setLocation(newDestination);
 		return newDestination;
 	}
@@ -65,9 +64,9 @@ public class Map implements map_functions{
 
 
 	@Override
-	public Destination getRandomDestination() {
-		int rand = getRandom(destinations.size());
-		return destinations.get(rand);
+	public Destination getRandomDestination(Random rand) {
+		int random = rand.nextInt(destinations.size());
+		return destinations.get(random);
 	}
 	
 }

@@ -1,16 +1,20 @@
-
+import java.util.Random;
 
 public class CitySimDriver {
+	
+	private static Random randomGenerator;
+	
 	public static void main(String [] args){
 		if(isArgValid(args)){
-			new CitySimDriver(Integer.parseInt(args[0]));	
+			randomGenerator = new Random(Integer.parseInt(args[0]));
+			new CitySimDriver();	
 		}else{
 			System.out.println("Must enter exactly one integer seed argument!");
 		}
 	}
 	
-	public CitySimDriver(int seed){
-		Map map = new Map(seed);
+	public CitySimDriver(){
+		Map map = new Map();
 		
 		// add new destinations to map
 		Destination Mall = map.addDestination("Mall");
@@ -28,7 +32,7 @@ public class CitySimDriver {
 		// create five drivers
 		Driver[] drivers = new Driver[5];
 		for(int i=0; i<drivers.length; i++){
-			Destination startDestination = map.getRandomDestination();
+			Destination startDestination = map.getRandomDestination(randomGenerator);
 			drivers[i] = new Driver(Integer.toString(i), startDestination);
 		}
 		
@@ -48,7 +52,7 @@ public class CitySimDriver {
 		
 			do{
 				Destination from = driver.location;
-				Destination to = map.moveDriver(driver);
+				Destination to = map.moveDriver(driver, randomGenerator);
 				Street street = from.getStreet(to);
 				
 				System.out.println("Driver " + driver.driverName + " from " + from.name + " to " + to.name + " via " + street.name);
@@ -57,7 +61,13 @@ public class CitySimDriver {
 		}
 	}
 	
-	
+	public int getRandom(int max){
+		return randomGenerator.nextInt(max);
+	}
+
+	public Random getRandomGenerator(){
+		return randomGenerator;
+	}
 	
 	public static boolean isArgValid(String [] args)
 	{
